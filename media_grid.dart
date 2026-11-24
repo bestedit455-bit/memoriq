@@ -23,6 +23,7 @@ class _MediaGridState extends State<MediaGrid>
   final Set<String> _selected = {};
   final ScrollController _sc = ScrollController();
   bool _loading = true;
+  final ValueNotifier<String> _monthLabel = ValueNotifier('');
 
   @override
   bool get wantKeepAlive => true;
