@@ -63,6 +63,7 @@ class _MediaGridState extends State<MediaGrid>
     final rowHeight = MediaQuery.of(context).size.width / 3;
     final firstRow = (_sc.offset / rowHeight).floor();
     final from = firstRow * 3;
+    _updateMonth(from);
     MediaService.preload(_items, from + 30, 90);
     if (from > 90) {
       MediaService.preload(_items, from - 60, 60);
