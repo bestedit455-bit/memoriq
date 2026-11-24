@@ -135,6 +135,24 @@ class _MediaGridState extends State<MediaGrid>
 );
 },
 ),
+        Positioned(
+  top: 8,
+  left: 12,
+  child: IgnorePointer(
+    child: ValueListenableBuilder<String>(
+      valueListenable: _monthLabel,
+      builder: (_, v, __) => v.isEmpty
+          ? const SizedBox()
+          : LiquidGlass(
+              radius: 16,
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 12, vertical: 6),
+              child: Text(v,
+                  style: const TextStyle(color: Colors.white)),
+            ),
+    ),
+  ),
+),
         if (_selecting)
           Positioned(
             left: 16,
