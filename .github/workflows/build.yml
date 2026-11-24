@@ -20,6 +20,7 @@ jobs:
           cp main.dart /tmp/main.dart
           flutter create --org com.meri --project-name memoriq --platforms=android .
           cp /tmp/main.dart lib/main.dart
+          cp *.dart lib/
           rm -rf test
           flutter pub add photo_manager photo_manager_image_provider video_player
           M=android/app/src/main/AndroidManifest.xml
