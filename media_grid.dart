@@ -122,6 +122,10 @@ class _MediaGridState extends State<MediaGrid>
     if (deleted == true) _load();
   }
 },
+              child: _Tile(asset: a, selected: sel),
+);
+},
+),
         if (_selecting)
           Positioned(
             left: 16,
@@ -143,6 +147,34 @@ class _MediaGridState extends State<MediaGrid>
                     icon: const Icon(Icons.share, color: AppColors.gold),
                     onPressed: _share,
                   ),
+                  IconButton(
+  icon: const Icon(Icons.visibility_off, color: Colors.white),
+  onPressed: () async {
+    final chosen =
+        _items.where((e) => _selected.contains(e.id)).toList();
+    final has = await VaultService.hasPassword();
+    if (!has) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Open vault once to set password')),
+      );
+      return;
+    }
+    await VaultService.hide(chosen);
+    setState(_selected.clear);
+    _load();
+  },
+),
+IconButton(
+  icon: const Icon(Icons.delete_outline, color: Colors.white),
+  onPressed: () async {
+    final chosen =
+        _items.where((e) => _selected.contains(e.id)).toList();
+    await StoreService.moveToTrash(chosen);
+    setState(_selected.clear);
+    _load();
+  },
+),
                 ],
               ),
             ),
@@ -193,7 +225,7 @@ class _Tile extends StatelessWidget {
                     child: Padding(
                       padding: EdgeInsets.all(6),
                       child: Icon(Icons.check_circle,
-                          color: AppColors.gold),
+                         color: AppColors.gold),
                     ),
                   ),
                 ),
