@@ -110,15 +110,18 @@ class _MediaGridState extends State<MediaGrid>
             final sel = _selected.contains(a.id);
             return GestureDetector(
               onLongPress: () => _toggle(a),
-              onTap: () {
-                if (_selecting) {
-                  _toggle(a);
-                }
-              },
-              child: _Tile(asset: a, selected: sel),
-            );
-          },
-        ),
+              onTap: () async {
+  if (_selecting) {
+    _toggle(a);
+  } else {
+    final deleted = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => ViewerPage(items: _items, start: i),
+      ),
+    );
+    if (deleted == true) _load();
+  }
+},
         if (_selecting)
           Positioned(
             left: 16,
