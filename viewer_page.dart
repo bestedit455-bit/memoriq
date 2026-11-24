@@ -6,6 +6,7 @@ import 'package:video_player/video_player.dart';
 import 'theme.dart';
 import 'glass.dart';
 import 'store_service.dart';
+import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 
 class ViewerPage extends StatefulWidget {
   final List<AssetEntity> items;
