@@ -3,6 +3,8 @@ import 'package:photo_manager/photo_manager.dart';
 import 'theme.dart';
 import 'glass.dart';
 import 'media_grid.dart';
+import 'vault_page.dart';
+import 'trash_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -14,6 +16,21 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _index = 0;
   final PageController _pc = PageController();
+  int _taps = 0;
+DateTime _last = DateTime.now();
+
+void _logoTap() {
+  final now = DateTime.now();
+  if (now.difference(_last).inMilliseconds > 800) _taps = 0;
+  _last = now;
+  _taps++;
+  if (_taps >= 3) {
+    _taps = 0;
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const VaultPage()),
+    );
+  }
+}
 
   @override
   Widget build(BuildContext context) {
