@@ -1,0 +1,200 @@
+import 'dart:typed_data';
+import 'package:flutter/material.dart';
+import 'package:photo_manager/photo_manager.dart';
+import 'package:share_plus/share_plus.dart';
+import 'theme.dart';
+import 'glass.dart';
+import 'media_service.dart';
+
+class MediaGrid extends StatefulWidget {
+  final RequestType type;
+  const MediaGrid({super.key, required this.type});
+
+  @override
+  State<MediaGrid> createState() => _MediaGridState();
+}
+
+class _MediaGridState extends State<MediaGrid>
+    with AutomaticKeepAliveClientMixin {
+  List<AssetEntity> _items = [];
+  final Set<String> _selected = {};
+  final ScrollController _sc = ScrollController();
+  bool _loading = true;
+
+  @override
+  bool get wantKeepAlive => true;
+
+  bool get _selecting => _selected.isNotEmpty;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+    _sc.addListener(_onScroll);
+  }
+
+  Future<void> _load() async {
+    final ok = await MediaService.requestPermission();
+    if (!ok) {
+      setState(() => _loading = false);
+      return;
+    }
+    final list = await MediaService.loadAssets(widget.type);
+    MediaService.preload(list, 0, 120);
+    if (!mounted) return;
+    setState(() {
+      _items = list;
+      _loading = false;
+    });
+  }
+
+  void _onScroll() {
+    final rowHeight = MediaQuery.of(context).size.width / 3;
+    final firstRow = (_sc.offset / rowHeight).floor();
+    final from = firstRow * 3;
+    MediaService.preload(_items, from + 30, 90);
+    if (from > 90) {
+      MediaService.preload(_items, from - 60, 60);
+    }
+  }
+
+  void _toggle(AssetEntity a) {
+    setState(() {
+      if (!_selected.remove(a.id)) _selected.add(a.id);
+    });
+  }
+
+  Future<void> _share() async {
+    final chosen = _items.where((e) => _selected.contains(e.id)).toList();
+    final files = <XFile>[];
+    for (final a in chosen) {
+      final f = await a.originFile;
+      if (f != null) files.add(XFile(f.path));
+    }
+    if (files.isNotEmpty) {
+      await Share.shareXFiles(files);
+    }
+  }
+
+  @override
+  void dispose() {
+    _sc.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    if (_loading) {
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.gold),
+      );
+    }
+    return Stack(
+      children: [
+        GridView.builder(
+          controller: _sc,
+          cacheExtent: 2500,
+          padding: const EdgeInsets.all(2),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            mainAxisSpacing: 2,
+            crossAxisSpacing: 2,
+          ),
+          itemCount: _items.length,
+          itemBuilder: (context, i) {
+            final a = _items[i];
+            final sel = _selected.contains(a.id);
+            return GestureDetector(
+              onLongPress: () => _toggle(a),
+              onTap: () {
+                if (_selecting) {
+                  _toggle(a);
+                }
+              },
+              child: _Tile(asset: a, selected: sel),
+            );
+          },
+        ),
+        if (_selecting)
+          Positioned(
+            left: 16,
+            right: 16,
+            bottom: 24,
+            child: LiquidGlass(
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white),
+                    onPressed: () => setState(_selected.clear),
+                  ),
+                  Text(
+                    '${_selected.length} selected',
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.share, color: AppColors.gold),
+                    onPressed: _share,
+                  ),
+                ],
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _Tile extends StatelessWidget {
+  final AssetEntity asset;
+  final bool selected;
+  const _Tile({required this.asset, required this.selected});
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<Uint8List?>(
+      future: MediaService.thumb(asset),
+      builder: (context, snap) {
+        final data = snap.data;
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(6),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Container(color: AppColors.surface),
+              if (data != null)
+                Image.memory(
+                  data,
+                  fit: BoxFit.cover,
+                  gaplessPlayback: true,
+                ),
+              if (asset.type == AssetType.video)
+                const Positioned(
+                  right: 6,
+                  bottom: 6,
+                  child: Icon(Icons.play_circle_fill,
+                      color: Colors.white, size: 20),
+                ),
+              if (selected)
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.gold.withOpacity(0.35),
+                    border: Border.all(color: AppColors.gold, width: 2),
+                  ),
+                  child: const Align(
+                    alignment: Alignment.topRight,
+                    child: Padding(
+                      padding: EdgeInsets.all(6),
+                      child: Icon(Icons.check_circle,
+                          color: AppColors.gold),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
