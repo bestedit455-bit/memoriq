@@ -37,15 +37,27 @@ void _logoTap() {
     return Scaffold(
       extendBody: true,
       appBar: AppBar(
-        title: const Text(
-          'MEMORIQ',
-          style: TextStyle(
-            color: AppColors.gold,
-            letterSpacing: 6,
-            fontWeight: FontWeight.w300,
-          ),
-        ),
+        title: GestureDetector(
+  onTap: _logoTap,
+  child: const Text(
+    'MEMORIQ',
+    style: TextStyle(
+      color: AppColors.gold,
+      letterSpacing: 6,
+      fontWeight: FontWeight.w300,
+    ),
+  ),
+),
         centerTitle: true,
+        actions: [
+  IconButton(
+    icon: const Icon(Icons.delete_outline,
+        color: AppColors.textSecondary),
+    onPressed: () => Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const TrashPage()),
+    ),
+  ),
+],
       ),
       body: PageView(
         controller: _pc,
