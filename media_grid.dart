@@ -5,6 +5,9 @@ import 'package:share_plus/share_plus.dart';
 import 'theme.dart';
 import 'glass.dart';
 import 'media_service.dart';
+import 'viewer_page.dart'; 
+import 'store_service.dart'; 
+import 'vault_service.dart'; 
 
 class MediaGrid extends StatefulWidget {
   final RequestType type;
