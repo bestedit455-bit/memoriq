@@ -51,6 +51,13 @@ class _MediaGridState extends State<MediaGrid>
       _loading = false;
     });
   }
+  void _updateMonth(int index) {
+  if (index < 0 || index >= _items.length) return;
+  final d = _items[index].createDateTime;
+  const m = ['Jan','Feb','Mar','Apr','May','Jun',
+             'Jul','Aug','Sep','Oct','Nov','Dec'];
+  _monthLabel.value = '${m[d.month - 1]} ${d.year}';
+  }
 
   void _onScroll() {
     final rowHeight = MediaQuery.of(context).size.width / 3;
