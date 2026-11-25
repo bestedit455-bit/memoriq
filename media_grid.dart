@@ -11,8 +11,9 @@ import 'vault_service.dart';
 
 class MediaGrid extends StatefulWidget {
   final RequestType type;
-  const MediaGrid({super.key, required this.type});
-
+final ValueNotifier<bool>? selecting;
+const MediaGrid({super.key, required this.type, this.selecting});
+  
   @override
   State<MediaGrid> createState() => _MediaGridState();
 }
@@ -71,9 +72,10 @@ class _MediaGridState extends State<MediaGrid>
   }
 
   void _toggle(AssetEntity a) {
-    setState(() {
-      if (!_selected.remove(a.id)) _selected.add(a.id);
-    });
+  setState(() {
+    if (!_selected.remove(a.id)) _selected.add(a.id);
+  });
+  widget.selecting?.value = _selected.isNotEmpty;
   }
 
   Future<void> _share() async {
@@ -163,7 +165,10 @@ class _MediaGridState extends State<MediaGrid>
                 children: [
                   IconButton(
                     icon: const Icon(Icons.close, color: Colors.white),
-                    onPressed: () => setState(_selected.clear),
+                    onPressed: () {
+  setState(_selected.clear);
+  widget.selecting?.value = false;
+},
                   ),
                   Text(
                     '${_selected.length} selected',
@@ -189,6 +194,7 @@ class _MediaGridState extends State<MediaGrid>
     }
     await VaultService.hide(chosen);
     setState(_selected.clear);
+    widget.selecting?.value = false;
     _load();
   },
 ),
@@ -199,6 +205,7 @@ IconButton(
         _items.where((e) => _selected.contains(e.id)).toList();
     await StoreService.moveToTrash(chosen);
     setState(_selected.clear);
+    widget.selecting?.value = false;
     _load();
   },
 ),
