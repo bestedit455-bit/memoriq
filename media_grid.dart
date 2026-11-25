@@ -159,7 +159,7 @@ class _MediaGridState extends State<MediaGrid>
           Positioned(
             left: 16,
             right: 16,
-            bottom: 24,
+            bottom: 16,
             child: LiquidGlass(
               child: Row(
                 children: [
