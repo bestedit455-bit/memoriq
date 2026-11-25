@@ -16,6 +16,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _index = 0;
   final PageController _pc = PageController();
+  final ValueNotifier<bool> _selecting = ValueNotifier(false); 
   int _taps = 0;
 DateTime _last = DateTime.now();
 
@@ -59,28 +60,42 @@ void _logoTap() {
   ),
 ],
       ),
-      body: PageView(
-        controller: _pc,
-        onPageChanged: (i) => setState(() => _index = i),
-        children: const [
-          MediaGrid(type: RequestType.image),
-          MediaGrid(type: RequestType.video),
-        ],
-      ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.fromLTRB(40, 0, 40, 16),
-        child: LiquidGlass(
-          radius: 30,
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _navItem(0, Icons.photo_outlined, 'Photos'),
-              _navItem(1, Icons.videocam_outlined, 'Videos'),
-            ],
-          ),
+      body: ValueListenableBuilder<bool>(
+  valueListenable: _selecting,
+  builder: (context, selecting, _) {
+    return PageView(
+      controller: _pc,
+      physics: selecting
+          ? const NeverScrollableScrollPhysics()
+          : const PageScrollPhysics(),
+      onPageChanged: (i) => setState(() => _index = i),
+      children: [
+        MediaGrid(type: RequestType.image, selecting: _selecting),
+        MediaGrid(type: RequestType.video, selecting: _selecting),
+      ],
+    );
+  },
+),
+      bottomNavigationBar: ValueListenableBuilder<bool>(
+  valueListenable: _selecting,
+  builder: (context, selecting, _) {
+    if (selecting) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(40, 0, 40, 16),
+      child: LiquidGlass(
+        radius: 30,
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _navItem(0, Icons.photo_outlined, 'Photos'),
+            _navItem(1, Icons.videocam_outlined, 'Videos'),
+          ],
         ),
       ),
+    );
+  },
+),
     );
   }
 
