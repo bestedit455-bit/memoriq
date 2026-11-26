@@ -50,14 +50,25 @@ class VaultService {
     return list;
   }
 
-  static Future<void> hide(List<AssetEntity> assets) async {
-    final d = await _dir();
-    for (final a in assets) {
-      final f = await a.originFile;
-      if (f == null) continue;
-      final name = '${DateTime.now().microsecondsSinceEpoch}_${a.id.hashCode}.${f.path.split('.').last}';
-      await f.copy('${d.path}/$name');
-    }
-    await PhotoManager.editor.deleteWithIds(assets.map((e) => e.id).toList());
+  static Future<bool> hide(List<AssetEntity> assets) async {
+  final d = await _dir();
+  final saved = <String>[];
+  for (final a in assets) {
+    try {
+      final bytes = await a.originBytes;
+      if (bytes == null || bytes.isEmpty) continue;
+      final title = await a.titleAsync;
+      final ext = title.contains('.') ? title.split('.').last : 'jpg';
+      final name = '${DateTime.now().microsecondsSinceEpoch}_${a.id.hashCode}.$ext';
+      final out = File('${d.path}/$name');
+      await out.writeAsBytes(bytes, flush: true);
+      if (await out.exists() && await out.length() == bytes.length) {
+        saved.add(a.id);
+      }
+    } catch (_) {}
+  }
+  if (saved.isEmpty) return false;
+  await PhotoManager.editor.deleteWithIds(saved);
+  return saved.length == assets.length;
   }
 }
