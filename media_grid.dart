@@ -192,7 +192,12 @@ class _MediaGridState extends State<MediaGrid>
       );
       return;
     }
-    await VaultService.hide(chosen);
+    final ok = await VaultService.hide(chosen);
+if (!ok && context.mounted) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text('Some items could not be hidden')),
+  );
+}
     setState(_selected.clear);
     widget.selecting?.value = false;
     _load();
